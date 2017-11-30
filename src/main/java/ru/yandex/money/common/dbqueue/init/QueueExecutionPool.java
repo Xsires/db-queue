@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 /**
  * Класс обеспечивающий запуск и остановку очередей, полученных из хранилища {@link QueueRegistry}
@@ -168,8 +169,10 @@ public class QueueExecutionPool {
                 poolInstance.queueShardThreadPool = shardThreadPool;
                 QueueLoop queueLoop = queueLoopFactory.apply(poolInstance.threadListener);
                 QueueRunner queueRunner = queueRunnerFactory.apply(poolInstance);
-                shardThreadPool.execute(() -> queueLoop.start(poolInstance.queueDao.getShardId(),
-                        poolInstance.queueConsumer, queueRunner));
+
+                IntStream.range(0, threadCount)
+                        .forEach(i -> shardThreadPool.execute(() -> queueLoop.start(poolInstance.queueDao.getShardId(),
+                                poolInstance.queueConsumer, queueRunner)));
             }
         });
     }
